@@ -10,7 +10,8 @@ This folder contains an importable Node-RED flow that:
 
 ## Files
 
-- supabase_ingest_flow.json: Import this file into Node-RED
+- supabase_ingest_flow.json: Minimal ingest-only flow (MQTT -> Supabase -> alert routing)
+- full_cder_supabase_dashboard_flow.json: Full dashboard + Supabase ingest + DB alert count polling
 
 ## Required Node-RED Environment Variables
 
@@ -46,3 +47,26 @@ Expected result:
 1. New row inserted into inspections
 2. Alert evaluated and upserted by DB trigger logic
 3. OPEN alert visible in Node-RED debug sidebar
+
+## Full Flow Setup (Recommended)
+
+Use this if you want one complete tab with realtime widgets and Supabase persistence:
+
+1. Import `full_cder_supabase_dashboard_flow.json`
+2. Open MQTT broker config node and set host/port/auth for your broker
+3. Ensure Node-RED environment variables are set:
+  - `SUPABASE_URL`
+  - `SUPABASE_SERVICE_ROLE_KEY`
+4. Deploy flow
+5. Open dashboard and verify these widgets update:
+  - Defect Severity gauge
+  - Severity Over Time chart
+  - Panel ID, Pad ID, Status, Robot, Model Version
+  - DB Alert status
+  - Open Alerts (DB)
+
+Notes:
+
+- The full flow is wired for topic `pv/inspection/severity`
+- `status` defaults to `CRITICAL` when `severity_score >= 0.70` if sender omits status
+- Keep `SUPABASE_SERVICE_ROLE_KEY` only in Node-RED environment variables (not inside Function code)

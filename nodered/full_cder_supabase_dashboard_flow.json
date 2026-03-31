@@ -1,0 +1,653 @@
+[
+  {
+    "id": "9a8200fd1fbb9ecd",
+    "type": "tab",
+    "label": "inferenceonnx_full",
+    "disabled": false,
+    "info": "Realtime dashboard + Supabase persistence + alert routing"
+  },
+  {
+    "id": "e0ab0f5d221f62da",
+    "type": "mqtt in",
+    "z": "9a8200fd1fbb9ecd",
+    "name": "EL MQTT input",
+    "topic": "pv/inspection/severity",
+    "qos": "1",
+    "datatype": "auto-detect",
+    "broker": "broker_mosquitto",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 150,
+    "y": 300,
+    "wires": [
+      [
+        "e130ca0490b8259a"
+      ]
+    ]
+  },
+  {
+    "id": "e130ca0490b8259a",
+    "type": "json",
+    "z": "9a8200fd1fbb9ecd",
+    "name": "Parse payload",
+    "property": "payload",
+    "action": "obj",
+    "pretty": false,
+    "x": 360,
+    "y": 300,
+    "wires": [
+      [
+        "9245b5313ab55f78",
+        "ui_panel_text",
+        "ui_pad_text",
+        "ui_status_text",
+        "ui_robot_text",
+        "ui_model_text",
+        "fn_prepare_insert"
+      ]
+    ]
+  },
+  {
+    "id": "9245b5313ab55f78",
+    "type": "change",
+    "z": "9a8200fd1fbb9ecd",
+    "name": "Extract severity_score",
+    "rules": [
+      {
+        "t": "set",
+        "p": "payload",
+        "pt": "msg",
+        "to": "payload.severity_score",
+        "tot": "msg"
+      }
+    ],
+    "x": 610,
+    "y": 220,
+    "wires": [
+      [
+        "e5e6052b5000973b",
+        "52a46ccfe671003b"
+      ]
+    ]
+  },
+  {
+    "id": "e5e6052b5000973b",
+    "type": "ui_gauge",
+    "z": "9a8200fd1fbb9ecd",
+    "name": "Severity Gauge",
+    "group": "99d9ecefe4cb4ebd",
+    "order": 1,
+    "width": 3,
+    "height": 3,
+    "gtype": "gage",
+    "title": "Defect Severity",
+    "label": "score",
+    "format": "{{value}}",
+    "min": 0,
+    "max": "1",
+    "colors": [
+      "#00b500",
+      "#e6e600",
+      "#ca3838"
+    ],
+    "seg1": "0.35",
+    "seg2": "0.65",
+    "diff": false,
+    "className": "",
+    "x": 870,
+    "y": 220,
+    "wires": []
+  },
+  {
+    "id": "52a46ccfe671003b",
+    "type": "ui_chart",
+    "z": "9a8200fd1fbb9ecd",
+    "name": "Severity Trend",
+    "group": "99d9ecefe4cb4ebd",
+    "order": 2,
+    "width": 6,
+    "height": 4,
+    "label": "Severity Over Time",
+    "chartType": "line",
+    "legend": "false",
+    "xformat": "MM-dd HH:mm",
+    "interpolate": "linear",
+    "nodata": "No data yet",
+    "dot": false,
+    "ymin": "0",
+    "ymax": "1",
+    "removeOlder": 1,
+    "removeOlderPoints": "",
+    "removeOlderUnit": "604800",
+    "cutout": 0,
+    "useOneColor": true,
+    "useUTC": false,
+    "colors": [
+      "#1f77b4"
+    ],
+    "outputs": 1,
+    "useDifferentColor": false,
+    "className": "",
+    "x": 880,
+    "y": 160,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "ui_panel_text",
+    "type": "ui_text",
+    "z": "9a8200fd1fbb9ecd",
+    "group": "99d9ecefe4cb4ebd",
+    "order": 3,
+    "width": 3,
+    "height": 1,
+    "name": "",
+    "label": "Panel ID",
+    "format": "{{msg.payload.panel_id}}",
+    "layout": "row-spread",
+    "className": "",
+    "style": false,
+    "font": "",
+    "fontSize": 16,
+    "color": "#111111",
+    "x": 610,
+    "y": 360,
+    "wires": []
+  },
+  {
+    "id": "ui_pad_text",
+    "type": "ui_text",
+    "z": "9a8200fd1fbb9ecd",
+    "group": "99d9ecefe4cb4ebd",
+    "order": 4,
+    "width": 3,
+    "height": 1,
+    "name": "",
+    "label": "Pad ID",
+    "format": "{{msg.payload.pad_id}}",
+    "layout": "row-spread",
+    "className": "",
+    "style": false,
+    "font": "",
+    "fontSize": 16,
+    "color": "#111111",
+    "x": 610,
+    "y": 400,
+    "wires": []
+  },
+  {
+    "id": "ui_status_text",
+    "type": "ui_text",
+    "z": "9a8200fd1fbb9ecd",
+    "group": "99d9ecefe4cb4ebd",
+    "order": 5,
+    "width": 3,
+    "height": 1,
+    "name": "",
+    "label": "Model Status",
+    "format": "{{msg.payload.status}}",
+    "layout": "row-spread",
+    "className": "",
+    "style": false,
+    "font": "",
+    "fontSize": 16,
+    "color": "#111111",
+    "x": 610,
+    "y": 440,
+    "wires": []
+  },
+  {
+    "id": "ui_robot_text",
+    "type": "ui_text",
+    "z": "9a8200fd1fbb9ecd",
+    "group": "99d9ecefe4cb4ebd",
+    "order": 6,
+    "width": 3,
+    "height": 1,
+    "name": "",
+    "label": "Robot",
+    "format": "{{msg.payload.robot_id}}",
+    "layout": "row-spread",
+    "className": "",
+    "style": false,
+    "font": "",
+    "fontSize": 16,
+    "color": "#111111",
+    "x": 600,
+    "y": 480,
+    "wires": []
+  },
+  {
+    "id": "ui_model_text",
+    "type": "ui_text",
+    "z": "9a8200fd1fbb9ecd",
+    "group": "99d9ecefe4cb4ebd",
+    "order": 7,
+    "width": 3,
+    "height": 1,
+    "name": "",
+    "label": "Model Version",
+    "format": "{{msg.payload.model_version}}",
+    "layout": "row-spread",
+    "className": "",
+    "style": false,
+    "font": "",
+    "fontSize": 16,
+    "color": "#111111",
+    "x": 620,
+    "y": 520,
+    "wires": []
+  },
+  {
+    "id": "fn_prepare_insert",
+    "type": "function",
+    "z": "9a8200fd1fbb9ecd",
+    "name": "Validate + prepare Supabase insert",
+    "func": "const p = msg.payload || {};\n\nconst score = Number(p.severity_score);\nif (!Number.isFinite(score)) {\n    node.warn('Dropped message: severity_score is missing/invalid');\n    return null;\n}\nif (!p.pad_id) {\n    node.warn('Dropped message: pad_id is required');\n    return null;\n}\n\nconst inspection = {\n    captured_at: new Date().toISOString(),\n    robot_id: p.robot_id || 'robot_01',\n    panel_id: p.panel_id || 'panel_A',\n    pad_id: p.pad_id,\n    severity_score: score,\n    status: p.status || (score >= 0.70 ? 'CRITICAL' : 'OK'),\n    image_path: p.image_path || null,\n    model_version: p.model_version || 'onnx_v1',\n    raw_payload: p\n};\n\nconst supabaseUrl = env.get('SUPABASE_URL');\nconst serviceRoleKey = env.get('SUPABASE_SERVICE_ROLE_KEY');\nif (!supabaseUrl || !serviceRoleKey) {\n    node.error('SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY not configured', msg);\n    return null;\n}\n\nmsg.meta = { panel_id: inspection.panel_id, pad_id: inspection.pad_id };\nmsg.url = supabaseUrl + '/rest/v1/inspections';\nmsg.method = 'POST';\nmsg.headers = {\n    apikey: serviceRoleKey,\n    Authorization: 'Bearer ' + serviceRoleKey,\n    'Content-Type': 'application/json',\n    Prefer: 'return=representation'\n};\nmsg.payload = [inspection];\nreturn msg;",
+    "outputs": 1,
+    "timeout": "",
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 680,
+    "y": 300,
+    "wires": [
+      [
+        "http_insert_inspection"
+      ]
+    ]
+  },
+  {
+    "id": "http_insert_inspection",
+    "type": "http request",
+    "z": "9a8200fd1fbb9ecd",
+    "name": "Supabase insert inspection",
+    "method": "use",
+    "ret": "obj",
+    "paytoqs": "ignore",
+    "url": "",
+    "tls": "",
+    "persist": false,
+    "proxy": "",
+    "insecureHTTPParser": false,
+    "authType": "",
+    "senderr": true,
+    "headers": [],
+    "x": 930,
+    "y": 300,
+    "wires": [
+      [
+        "fn_prepare_rpc"
+      ]
+    ]
+  },
+  {
+    "id": "fn_prepare_rpc",
+    "type": "function",
+    "z": "9a8200fd1fbb9ecd",
+    "name": "Prepare evaluate_pad_alert RPC",
+    "func": "const supabaseUrl = env.get('SUPABASE_URL');\nconst serviceRoleKey = env.get('SUPABASE_SERVICE_ROLE_KEY');\n\nmsg.url = supabaseUrl + '/rest/v1/rpc/evaluate_pad_alert';\nmsg.method = 'POST';\nmsg.headers = {\n    apikey: serviceRoleKey,\n    Authorization: 'Bearer ' + serviceRoleKey,\n    'Content-Type': 'application/json'\n};\nmsg.payload = {\n    p_panel_id: msg.meta.panel_id,\n    p_pad_id: msg.meta.pad_id\n};\nreturn msg;",
+    "outputs": 1,
+    "timeout": "",
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 1180,
+    "y": 300,
+    "wires": [
+      [
+        "http_eval_alert"
+      ]
+    ]
+  },
+  {
+    "id": "http_eval_alert",
+    "type": "http request",
+    "z": "9a8200fd1fbb9ecd",
+    "name": "Supabase evaluate alert",
+    "method": "use",
+    "ret": "obj",
+    "paytoqs": "ignore",
+    "url": "",
+    "tls": "",
+    "persist": false,
+    "proxy": "",
+    "insecureHTTPParser": false,
+    "authType": "",
+    "senderr": true,
+    "headers": [],
+    "x": 1410,
+    "y": 300,
+    "wires": [
+      [
+        "fn_parse_alert"
+      ]
+    ]
+  },
+  {
+    "id": "fn_parse_alert",
+    "type": "function",
+    "z": "9a8200fd1fbb9ecd",
+    "name": "Parse alert result",
+    "func": "const r = Array.isArray(msg.payload) ? msg.payload[0] : msg.payload;\nif (!r || !r.state) {\n    node.warn('evaluate_pad_alert returned empty result');\n    return null;\n}\nmsg.alert = r;\nmsg.payload = r.state + ' - ' + r.reason + ' (score=' + r.current_score + ')';\nreturn msg;",
+    "outputs": 1,
+    "timeout": "",
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 1640,
+    "y": 300,
+    "wires": [
+      [
+        "ui_alert_text",
+        "switch_alert_state",
+        "debug_alert_eval"
+      ]
+    ]
+  },
+  {
+    "id": "ui_alert_text",
+    "type": "ui_text",
+    "z": "9a8200fd1fbb9ecd",
+    "group": "99d9ecefe4cb4ebd",
+    "order": 8,
+    "width": 6,
+    "height": 1,
+    "name": "",
+    "label": "DB Alert",
+    "format": "{{msg.payload}}",
+    "layout": "row-spread",
+    "className": "",
+    "style": false,
+    "font": "",
+    "fontSize": 16,
+    "color": "#c0392b",
+    "x": 1870,
+    "y": 260,
+    "wires": []
+  },
+  {
+    "id": "switch_alert_state",
+    "type": "switch",
+    "z": "9a8200fd1fbb9ecd",
+    "name": "OPEN?",
+    "property": "alert.state",
+    "propertyType": "msg",
+    "rules": [
+      {
+        "t": "eq",
+        "v": "OPEN",
+        "vt": "str"
+      },
+      {
+        "t": "else"
+      }
+    ],
+    "checkall": "true",
+    "repair": false,
+    "outputs": 2,
+    "x": 1840,
+    "y": 320,
+    "wires": [
+      [
+        "debug_alert_open"
+      ],
+      [
+        "debug_alert_other"
+      ]
+    ]
+  },
+  {
+    "id": "debug_alert_open",
+    "type": "debug",
+    "z": "9a8200fd1fbb9ecd",
+    "name": "OPEN alert",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "alert",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 2030,
+    "y": 300,
+    "wires": []
+  },
+  {
+    "id": "debug_alert_other",
+    "type": "debug",
+    "z": "9a8200fd1fbb9ecd",
+    "name": "Non-OPEN alert",
+    "active": false,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "alert",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 2040,
+    "y": 340,
+    "wires": []
+  },
+  {
+    "id": "debug_alert_eval",
+    "type": "debug",
+    "z": "9a8200fd1fbb9ecd",
+    "name": "Alert eval raw",
+    "active": false,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "true",
+    "targetType": "full",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1850,
+    "y": 380,
+    "wires": []
+  },
+  {
+    "id": "inject_open_count",
+    "type": "inject",
+    "z": "9a8200fd1fbb9ecd",
+    "name": "Poll open alerts (30s)",
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "repeat": "30",
+    "crontab": "",
+    "once": true,
+    "onceDelay": "3",
+    "topic": "",
+    "payload": "",
+    "payloadType": "date",
+    "x": 180,
+    "y": 620,
+    "wires": [
+      [
+        "fn_prepare_open_count_query"
+      ]
+    ]
+  },
+  {
+    "id": "fn_prepare_open_count_query",
+    "type": "function",
+    "z": "9a8200fd1fbb9ecd",
+    "name": "Prepare open alert count query",
+    "func": "const supabaseUrl = env.get('SUPABASE_URL');\nconst serviceRoleKey = env.get('SUPABASE_SERVICE_ROLE_KEY');\nif (!supabaseUrl || !serviceRoleKey) {\n    return null;\n}\nmsg.url = supabaseUrl + '/rest/v1/vw_open_alerts?select=id';\nmsg.method = 'GET';\nmsg.headers = {\n    apikey: serviceRoleKey,\n    Authorization: 'Bearer ' + serviceRoleKey\n};\nreturn msg;",
+    "outputs": 1,
+    "timeout": "",
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 430,
+    "y": 620,
+    "wires": [
+      [
+        "http_get_open_alerts"
+      ]
+    ]
+  },
+  {
+    "id": "http_get_open_alerts",
+    "type": "http request",
+    "z": "9a8200fd1fbb9ecd",
+    "name": "Supabase get open alerts",
+    "method": "use",
+    "ret": "obj",
+    "paytoqs": "ignore",
+    "url": "",
+    "tls": "",
+    "persist": false,
+    "proxy": "",
+    "insecureHTTPParser": false,
+    "authType": "",
+    "senderr": true,
+    "headers": [],
+    "x": 670,
+    "y": 620,
+    "wires": [
+      [
+        "fn_format_open_count"
+      ]
+    ]
+  },
+  {
+    "id": "fn_format_open_count",
+    "type": "function",
+    "z": "9a8200fd1fbb9ecd",
+    "name": "Format open alert count",
+    "func": "let count = 0;\nif (Array.isArray(msg.payload)) {\n    count = msg.payload.length;\n} else if (msg.payload && Array.isArray(msg.payload.value)) {\n    count = msg.payload.value.length;\n}\nmsg.payload = String(count);\nreturn msg;",
+    "outputs": 1,
+    "timeout": "",
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 900,
+    "y": 620,
+    "wires": [
+      [
+        "ui_open_count_text"
+      ]
+    ]
+  },
+  {
+    "id": "ui_open_count_text",
+    "type": "ui_text",
+    "z": "9a8200fd1fbb9ecd",
+    "group": "99d9ecefe4cb4ebd",
+    "order": 9,
+    "width": 3,
+    "height": 1,
+    "name": "",
+    "label": "Open Alerts (DB)",
+    "format": "{{msg.payload}}",
+    "layout": "row-spread",
+    "className": "",
+    "style": false,
+    "font": "",
+    "fontSize": 16,
+    "color": "#b03a2e",
+    "x": 1130,
+    "y": 620,
+    "wires": []
+  },
+  {
+    "id": "catch_errors",
+    "type": "catch",
+    "z": "9a8200fd1fbb9ecd",
+    "name": "Catch flow errors",
+    "scope": [
+      "fn_prepare_insert",
+      "http_insert_inspection",
+      "fn_prepare_rpc",
+      "http_eval_alert",
+      "fn_parse_alert",
+      "http_get_open_alerts"
+    ],
+    "uncaught": false,
+    "x": 170,
+    "y": 700,
+    "wires": [
+      [
+        "debug_errors"
+      ]
+    ]
+  },
+  {
+    "id": "debug_errors",
+    "type": "debug",
+    "z": "9a8200fd1fbb9ecd",
+    "name": "Flow errors",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": true,
+    "complete": "true",
+    "targetType": "full",
+    "statusVal": "error.message",
+    "statusType": "msg",
+    "x": 390,
+    "y": 700,
+    "wires": []
+  },
+  {
+    "id": "broker_mosquitto",
+    "type": "mqtt-broker",
+    "name": "Mosquitto",
+    "broker": "test.mosquitto.org",
+    "port": "1883",
+    "clientid": "",
+    "autoConnect": true,
+    "usetls": false,
+    "protocolVersion": "4",
+    "keepalive": "60",
+    "cleansession": true,
+    "autoUnsubscribe": true,
+    "birthTopic": "",
+    "birthQos": "0",
+    "birthPayload": "",
+    "birthMsg": {},
+    "closeTopic": "",
+    "closeQos": "0",
+    "closePayload": "",
+    "closeMsg": {},
+    "willTopic": "",
+    "willQos": "0",
+    "willPayload": "",
+    "willMsg": {},
+    "userProps": "",
+    "sessionExpiry": ""
+  },
+  {
+    "id": "99d9ecefe4cb4ebd",
+    "type": "ui_group",
+    "name": "CDER",
+    "tab": "37cddf308f7a3496",
+    "order": 1,
+    "disp": true,
+    "width": 6,
+    "collapse": false,
+    "className": ""
+  },
+  {
+    "id": "37cddf308f7a3496",
+    "type": "ui_tab",
+    "name": "CDERdashboard",
+    "icon": "dashboard",
+    "disabled": false,
+    "hidden": false
+  }
+]
