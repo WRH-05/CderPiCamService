@@ -1,0 +1,14 @@
+[Unit]
+Description=Pi Camera Listener (ESP32 USB Trigger + ONNX)
+After=network.target
+
+[Service]
+Type=simple
+User=chrome
+WorkingDirectory=/home/chrome/pi_camera_service
+ExecStart=/home/chrome/pi_camera_service/.venv/bin/python /home/chrome/pi_camera_service/pi_capture_listener.py --serial_port /dev/ttyUSB0 --baudrate 115200 --camera_backend webcam --webcam_index 0 --capture_delay_seconds 15 --critical_threshold 0.65 --onnx_model best_model.onnx --inference_script intereference_onnx.py --mqtt_enable --mqtt_broker test.mosquitto.org --mqtt_port 1883 --mqtt_topic pv/inspection/severity
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
