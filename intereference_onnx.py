@@ -49,12 +49,24 @@ def infer_severity_score(
     return severity_score
 
 
-def build_payload(pad_id: str, severity_score: float, critical_threshold: float = 0.80) -> Dict[str, object]:
+def build_payload(
+    panel_id: str,
+    pad_id: str,
+    robot_id: str,
+    model_version: str,
+    severity_score: float,
+    critical_threshold: float = 0.80,
+    image_path: Optional[str] = None,
+) -> Dict[str, object]:
     status = "CRITICAL" if severity_score > critical_threshold else "OK"
     return {
+        "panel_id": panel_id,
         "pad_id": pad_id,
+        "robot_id": robot_id,
+        "model_version": model_version,
         "severity_score": round(severity_score, 4),
         "status": status,
+        "image_path": image_path,
     }
 
 
@@ -69,7 +81,10 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="ONNX Runtime EL inference with MQTT mock payload.")
     parser.add_argument("--onnx_model", type=str, default="best_model.onnx")
     parser.add_argument("--image_path", type=str, required=True)
+    parser.add_argument("--panel_id", type=str, default="panel_A")
     parser.add_argument("--pad_id", type=str, default="simulated_pad_01")
+    parser.add_argument("--robot_id", type=str, default="robot_01")
+    parser.add_argument("--model_version", type=str, default="onnx_v1")
     parser.add_argument("--critical_threshold", type=float, default=0.80)
     parser.add_argument("--image_size", type=int, default=224)
 
@@ -91,9 +106,13 @@ def main() -> None:
     )
 
     payload = build_payload(
+        panel_id=args.panel_id,
         pad_id=args.pad_id,
+        robot_id=args.robot_id,
+        model_version=args.model_version,
         severity_score=score,
         critical_threshold=args.critical_threshold,
+        image_path=args.image_path,
     )
 
     print(json.dumps(payload, indent=2))

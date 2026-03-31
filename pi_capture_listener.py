@@ -125,7 +125,10 @@ def append_csv_log(csv_path: Path, row: dict[str, object]) -> None:
             fieldnames=[
                 "timestamp_utc",
                 "image_path",
+                "panel_id",
                 "pad_id",
+                "robot_id",
+                "model_version",
                 "severity_score",
                 "status",
                 "trigger_line",
@@ -142,7 +145,10 @@ def process_capture(
     onnx_model: Path,
     image_path: Path,
     image_size: int,
+    panel_id: str,
     pad_id: str,
+    robot_id: str,
+    model_version: str,
     critical_threshold: float,
     mqtt_enable: bool,
     mqtt_broker: str,
@@ -158,9 +164,13 @@ def process_capture(
     )
 
     payload = inference_module.build_payload(
+        panel_id=panel_id,
         pad_id=pad_id,
+        robot_id=robot_id,
+        model_version=model_version,
         severity_score=score,
         critical_threshold=critical_threshold,
+        image_path=str(image_path),
     )
 
     print(json.dumps(payload, indent=2), flush=True)
@@ -261,7 +271,10 @@ def main() -> None:
     parser.add_argument("--inference_script", default="intereference_onnx.py")
     parser.add_argument("--onnx_model", default="best_model.onnx")
     parser.add_argument("--image_size", type=int, default=224)
+    parser.add_argument("--panel_id", default="panel_A")
     parser.add_argument("--pad_id", default="simulated_pad_01")
+    parser.add_argument("--robot_id", default="robot_01")
+    parser.add_argument("--model_version", default="onnx_v1")
     parser.add_argument("--critical_threshold", type=float, default=0.65)
 
     parser.add_argument("--mqtt_enable", action="store_true")
@@ -346,7 +359,10 @@ def main() -> None:
                         onnx_model=onnx_model,
                         image_path=image_path,
                         image_size=args.image_size,
+                        panel_id=args.panel_id,
                         pad_id=args.pad_id,
+                        robot_id=args.robot_id,
+                        model_version=args.model_version,
                         critical_threshold=args.critical_threshold,
                         mqtt_enable=args.mqtt_enable,
                         mqtt_broker=args.mqtt_broker,
@@ -361,7 +377,10 @@ def main() -> None:
                             row={
                                 "timestamp_utc": datetime.utcnow().isoformat(timespec="seconds") + "Z",
                                 "image_path": str(image_path),
+                                "panel_id": payload.get("panel_id", args.panel_id),
                                 "pad_id": payload.get("pad_id", args.pad_id),
+                                "robot_id": payload.get("robot_id", args.robot_id),
+                                "model_version": payload.get("model_version", args.model_version),
                                 "severity_score": payload.get("severity_score", ""),
                                 "status": payload.get("status", ""),
                                 "trigger_line": line,
