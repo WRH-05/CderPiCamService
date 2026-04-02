@@ -1,0 +1,2 @@
+generated_at_utc,model_path,captures_dir,processed_count,success_count,failed_count,mean_latency_ms,median_latency_ms,p90_latency_ms,p95_latency_ms,min_latency_ms,max_latency_ms,throughput_fps,rss_before_session_mb,rss_after_session_mb,peak_rss_mb
+2026-04-02T01:05:59+00:00,/home/chrome/CderPiCamService/best_model_v3_1_goldilocks.onnx,/home/chrome/CderPiCamService/captures,150,150,0,172.29037542001302,168.6036735000016,180.25596870006666,182.7477036500568,166.77560900006938,198.22386899977573,5.804154744930931,,,
