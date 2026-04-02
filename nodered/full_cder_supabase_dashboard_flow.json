@@ -39,10 +39,7 @@
         "y": 300,
         "wires": [
             [
-                "4432e4914cc14458",
-                "b8f929387081ee9f",
-                "a1ac2c131da8eb88",
-                "0690bc3a7b379f74"
+                "0d8b3e54efb3448b"
             ]
         ]
     },
@@ -171,7 +168,7 @@
         "order": 2,
         "width": "24",
         "height": "4",
-        "format": "<div class='cder-summary-grid'>\n  <div class='cder-kpi-card cder-kpi-card--accent'>\n    <div class='cder-kpi-label'>Panel</div>\n    <div class='cder-kpi-value'>{{msg.payload.panel_id || '—'}}</div>\n    <div class='cder-kpi-hint'>Current inspection panel</div>\n  </div>\n  <div class='cder-kpi-card cder-kpi-card--soft'>\n    <div class='cder-kpi-label'>Pad</div>\n    <div class='cder-kpi-value'>{{msg.payload.pad_id || '—'}}</div>\n    <div class='cder-kpi-hint'>Target pad identifier</div>\n  </div>\n  <div class='cder-kpi-card cder-kpi-card--success'>\n    <div class='cder-kpi-label'>Model Status</div>\n    <div class='cder-kpi-value'>{{msg.payload.status || '—'}}</div>\n    <div class='cder-kpi-hint'>Classification result</div>\n  </div>\n  <div class='cder-kpi-card cder-kpi-card--soft'>\n    <div class='cder-kpi-label'>Robot</div>\n    <div class='cder-kpi-value'>{{msg.payload.robot_id || '—'}}</div>\n    <div class='cder-kpi-hint'>Source robot identity</div>\n  </div>\n  <div class='cder-kpi-card cder-kpi-card--warning'>\n    <div class='cder-kpi-label'>Model Version</div>\n    <div class='cder-kpi-value'>{{msg.payload.model_version || '—'}}</div>\n    <div class='cder-kpi-hint'>Current deployed model</div>\n  </div>\n  <div class='cder-kpi-card cder-kpi-card--accent'>\n    <div class='cder-kpi-label'>Severity</div>\n    <div class='cder-kpi-value'>{{msg.payload.severity_score | number: 2}}</div>\n    <div class='cder-kpi-hint'>Higher means more severe</div>\n  </div>\n</div>",
+        "format": "<div class='cder-summary-grid'>\n  <div class='cder-kpi-card cder-kpi-card--accent'>\n    <div class='cder-kpi-label'>Panel</div>\n    <div class='cder-kpi-value'>{{msg.payload.panel_id || '\u2014'}}</div>\n    <div class='cder-kpi-hint'>Current inspection panel</div>\n  </div>\n  <div class='cder-kpi-card cder-kpi-card--soft'>\n    <div class='cder-kpi-label'>Pad</div>\n    <div class='cder-kpi-value'>{{msg.payload.pad_id || '\u2014'}}</div>\n    <div class='cder-kpi-hint'>Target pad identifier</div>\n  </div>\n  <div class='cder-kpi-card cder-kpi-card--success'>\n    <div class='cder-kpi-label'>Model Status</div>\n    <div class='cder-kpi-value'>{{msg.payload.status || '\u2014'}}</div>\n    <div class='cder-kpi-hint'>Classification result</div>\n  </div>\n  <div class='cder-kpi-card cder-kpi-card--soft'>\n    <div class='cder-kpi-label'>Robot</div>\n    <div class='cder-kpi-value'>{{msg.payload.robot_id || '\u2014'}}</div>\n    <div class='cder-kpi-hint'>Source robot identity</div>\n  </div>\n  <div class='cder-kpi-card cder-kpi-card--warning'>\n    <div class='cder-kpi-label'>Model Version</div>\n    <div class='cder-kpi-value'>{{msg.payload.model_version || '\u2014'}}</div>\n    <div class='cder-kpi-hint'>Current deployed model</div>\n  </div>\n  <div class='cder-kpi-card cder-kpi-card--accent'>\n    <div class='cder-kpi-label'>Severity</div>\n    <div class='cder-kpi-value'>{{msg.payload.severity_score | number: 2}}</div>\n    <div class='cder-kpi-hint'>Higher means more severe</div>\n  </div>\n</div>",
         "storeOutMessages": false,
         "fwdInMessages": false,
         "resendOnRefresh": true,
@@ -594,5 +591,337 @@
         "order": 1,
         "disabled": false,
         "hidden": false
+    },
+    {
+        "id": "6d3fca4b1ae047a3",
+        "type": "inject",
+        "z": "b9c24d8bf2d94ba1",
+        "name": "Init panel/pad selectors",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "1",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 170,
+        "y": 40,
+        "wires": [
+            [
+                "b1f7c8d94a0e4d1a"
+            ]
+        ]
+    },
+    {
+        "id": "b1f7c8d94a0e4d1a",
+        "type": "function",
+        "z": "b9c24d8bf2d94ba1",
+        "name": "Build panel options (9)",
+        "func": "const panelOptions = [];\nfor (let i = 1; i <= 9; i++) {\n  panelOptions.push({ label: `Panel ${i}`, value: `panel_${i}` });\n}\nconst selectedPanel = flow.get('selected_panel_id') || 'panel_1';\nflow.set('selected_panel_id', selectedPanel);\nconst modeOptions = [\n  { label: 'Live MQTT', value: 'live' },\n  { label: 'DB Filter', value: 'db' }\n];\nconst selectedMode = flow.get('selected_mode') || 'live';\nflow.set('selected_mode', selectedMode);\nconst toPanelDropdown = { options: panelOptions, payload: selectedPanel, topic: 'panel_id' };\nconst toPadBuilder = { payload: selectedPanel, topic: 'panel_id' };\nconst toModeDropdown = { options: modeOptions, payload: selectedMode, topic: 'mode' };\nreturn [toPanelDropdown, toPadBuilder, toModeDropdown];",
+        "outputs": 3,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 420,
+        "y": 40,
+        "wires": [
+            [
+                "9f2b7d8e34f14b31"
+            ],
+            [
+                "dd78e4fcb4f34f8d"
+            ],
+            [
+                "f86d91be9a2f4f12"
+            ]
+        ]
+    },
+    {
+        "id": "9f2b7d8e34f14b31",
+        "type": "ui_dropdown",
+        "z": "b9c24d8bf2d94ba1",
+        "name": "Panel Selector",
+        "label": "Panel",
+        "tooltip": "Filter by panel",
+        "place": "Select panel",
+        "group": "dbe4f94afd3a8245",
+        "order": 5,
+        "width": 4,
+        "height": 1,
+        "passthru": true,
+        "multiple": false,
+        "options": [],
+        "payload": "",
+        "topic": "panel_id",
+        "topicType": "str",
+        "className": "",
+        "x": 700,
+        "y": 40,
+        "wires": [
+            [
+                "dd78e4fcb4f34f8d"
+            ]
+        ]
+    },
+    {
+        "id": "dd78e4fcb4f34f8d",
+        "type": "function",
+        "z": "b9c24d8bf2d94ba1",
+        "name": "Build pad options (24)",
+        "func": "const selectedPanel = msg.payload || flow.get('selected_panel_id') || 'panel_1';\nflow.set('selected_panel_id', selectedPanel);\nconst options = [];\nfor (let i = 1; i <= 24; i++) {\n  const value = `pad_${String(i).padStart(2, '0')}`;\n  options.push({ label: `Pad ${String(i).padStart(2, '0')}`, value });\n}\nlet selectedPad = flow.get('selected_pad_id') || 'pad_01';\nif (!options.find(o => o.value === selectedPad)) selectedPad = 'pad_01';\nflow.set('selected_pad_id', selectedPad);\nconst toPadDropdown = { options, payload: selectedPad, topic: 'pad_id' };\nconst toQuery = { payload: selectedPad, topic: 'pad_id' };\nreturn [toPadDropdown, toQuery];",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 940,
+        "y": 40,
+        "wires": [
+            [
+                "3a0d2e6178c44f2d"
+            ],
+            [
+                "c6ba3b672dc249e1"
+            ]
+        ]
+    },
+    {
+        "id": "3a0d2e6178c44f2d",
+        "type": "ui_dropdown",
+        "z": "b9c24d8bf2d94ba1",
+        "name": "Pad Selector",
+        "label": "Pad",
+        "tooltip": "Filter by pad within panel",
+        "place": "Select pad",
+        "group": "dbe4f94afd3a8245",
+        "order": 6,
+        "width": 4,
+        "height": 1,
+        "passthru": true,
+        "multiple": false,
+        "options": [],
+        "payload": "",
+        "topic": "pad_id",
+        "topicType": "str",
+        "className": "",
+        "x": 1210,
+        "y": 40,
+        "wires": [
+            [
+                "c6ba3b672dc249e1"
+            ]
+        ]
+    },
+    {
+        "id": "f3cdd8d1846f4e51",
+        "type": "inject",
+        "z": "b9c24d8bf2d94ba1",
+        "name": "Poll selected pad (15s)",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "15",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "2",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 200,
+        "y": 560,
+        "wires": [
+            [
+                "c6ba3b672dc249e1"
+            ]
+        ]
+    },
+    {
+        "id": "c6ba3b672dc249e1",
+        "type": "function",
+        "z": "b9c24d8bf2d94ba1",
+        "name": "Prepare selected pad query",
+        "func": "if (msg.topic === 'panel_id') flow.set('selected_panel_id', msg.payload);\nif (msg.topic === 'pad_id') flow.set('selected_pad_id', msg.payload);\nif (msg.topic === 'mode') {\n  flow.set('selected_mode', msg.payload);\n  if (msg.payload !== 'db') return null;\n}\nconst selectedMode = flow.get('selected_mode') || 'live';\nif (selectedMode !== 'db') return null;\nconst panelId = flow.get('selected_panel_id') || 'panel_1';\nconst padId = flow.get('selected_pad_id') || 'pad_01';\nconst supabaseUrl = env.get('SUPABASE_URL');\nconst serviceRoleKey = env.get('SUPABASE_SERVICE_ROLE_KEY');\nif (!supabaseUrl || !serviceRoleKey) {\n  node.warn('SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY not configured');\n  return null;\n}\nmsg.meta = { panel_id: panelId, pad_id: padId };\nmsg.url = `${supabaseUrl}/rest/v1/inspections?select=*&panel_id=eq.${encodeURIComponent(panelId)}&pad_id=eq.${encodeURIComponent(padId)}&order=captured_at.desc&limit=1`;\nmsg.method = 'GET';\nmsg.headers = { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` };\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 470,
+        "y": 560,
+        "wires": [
+            [
+                "8e4d7ab1a6f24fd0"
+            ]
+        ]
+    },
+    {
+        "id": "8e4d7ab1a6f24fd0",
+        "type": "http request",
+        "z": "b9c24d8bf2d94ba1",
+        "name": "Supabase selected inspection",
+        "method": "use",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": true,
+        "headers": [],
+        "x": 740,
+        "y": 560,
+        "wires": [
+            [
+                "5138f07b0ed54456"
+            ]
+        ]
+    },
+    {
+        "id": "5138f07b0ed54456",
+        "type": "function",
+        "z": "b9c24d8bf2d94ba1",
+        "name": "Map selected inspection to UI",
+        "func": "const row = Array.isArray(msg.payload) ? msg.payload[0] : msg.payload;\nif (!row) {\n  node.warn('No inspection rows for selected panel/pad');\n  return null;\n}\nmsg.payload = row;\nmsg.meta = { panel_id: row.panel_id, pad_id: row.pad_id };\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1020,
+        "y": 560,
+        "wires": [
+            [
+                "a74f6237d8e545f2"
+            ]
+        ]
+    },
+    {
+        "id": "e1f9c1f6d9b04f2d",
+        "type": "function",
+        "z": "b9c24d8bf2d94ba1",
+        "name": "Prepare selected alert RPC",
+        "func": "const supabaseUrl = env.get('SUPABASE_URL');\nconst serviceRoleKey = env.get('SUPABASE_SERVICE_ROLE_KEY');\nif (!supabaseUrl || !serviceRoleKey) return null;\nconst panelId = (msg.meta && msg.meta.panel_id) || flow.get('selected_panel_id') || 'panel_1';\nconst padId = (msg.meta && msg.meta.pad_id) || flow.get('selected_pad_id') || 'pad_01';\nmsg.url = `${supabaseUrl}/rest/v1/rpc/evaluate_pad_alert`;\nmsg.method = 'POST';\nmsg.headers = {\n  apikey: serviceRoleKey,\n  Authorization: `Bearer ${serviceRoleKey}`,\n  'Content-Type': 'application/json'\n};\nmsg.payload = { p_panel_id: panelId, p_pad_id: padId };\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1250,
+        "y": 620,
+        "wires": [
+            [
+                "a4f1cd2652e74c2a"
+            ]
+        ]
+    },
+    {
+        "id": "a4f1cd2652e74c2a",
+        "type": "http request",
+        "z": "b9c24d8bf2d94ba1",
+        "name": "Supabase selected alert",
+        "method": "use",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": true,
+        "headers": [],
+        "x": 1500,
+        "y": 620,
+        "wires": [
+            [
+                "6a37b4806fb5eda1"
+            ]
+        ]
+    },
+    {
+        "id": "0d8b3e54efb3448b",
+        "type": "function",
+        "z": "b9c24d8bf2d94ba1",
+        "name": "Route MQTT by mode",
+        "func": "const mode = flow.get('selected_mode') || 'live';\nconst ingestMsg = RED.util.cloneMessage(msg);\nif (mode === 'live') {\n  return [msg, ingestMsg];\n}\nreturn [null, ingestMsg];",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 560,
+        "y": 300,
+        "wires": [
+            [
+                "4432e4914cc14458",
+                "b8f929387081ee9f",
+                "a1ac2c131da8eb88"
+            ],
+            [
+                "0690bc3a7b379f74"
+            ]
+        ]
+    },
+    {
+        "id": "f86d91be9a2f4f12",
+        "type": "ui_dropdown",
+        "z": "b9c24d8bf2d94ba1",
+        "name": "Mode Selector",
+        "label": "Mode",
+        "tooltip": "Switch between live MQTT and filtered DB display",
+        "place": "Select mode",
+        "group": "dbe4f94afd3a8245",
+        "order": 7,
+        "width": 4,
+        "height": 1,
+        "passthru": true,
+        "multiple": false,
+        "options": [],
+        "payload": "",
+        "topic": "mode",
+        "topicType": "str",
+        "className": "",
+        "x": 1490,
+        "y": 40,
+        "wires": [
+            [
+                "c6ba3b672dc249e1",
+                "a74f6237d8e545f2",
+                "0d8b3e54efb3448b"
+            ]
+        ]
+    },
+    {
+        "id": "a74f6237d8e545f2",
+        "type": "function",
+        "z": "b9c24d8bf2d94ba1",
+        "name": "Route DB by mode",
+        "func": "if (msg.topic === 'mode') {\n  flow.set('selected_mode', msg.payload);\n  return null;\n}\nconst mode = flow.get('selected_mode') || 'live';\nif (mode !== 'db') return null;\nreturn [msg, RED.util.cloneMessage(msg)];",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1250,
+        "y": 560,
+        "wires": [
+            [
+                "a1ac2c131da8eb88",
+                "4432e4914cc14458"
+            ],
+            [
+                "e1f9c1f6d9b04f2d"
+            ]
+        ]
     }
 ]
