@@ -9,6 +9,8 @@ When trigger text is received, it:
 4. Prints payload JSON and can publish MQTT (default broker port 1883).
 5. Appends each inference result to a CSV log file (`inference_log.csv`).
 
+It also includes standalone benchmarking and batch-inference scripts so you can measure Raspberry Pi 4 performance without changing the listener.
+
 The ESP32 firmware project can stay separate and contain no Python files.
 
 ## Expected Folder Layout on Pi
@@ -19,7 +21,10 @@ Use only this folder on the Pi:
 pi_camera_service/
   intereference_onnx.py
   best_model.onnx
+  best_model_v3_1_goldilocks.onnx
   pi_capture_listener.py
+  benchmark_onnx.py
+  batch_inference_captures.py
   requirements.txt
   pi_camera_listener.service
   README.md
@@ -155,6 +160,59 @@ sudo apt install -y libcamera-apps
 ```
 
 Note: `libcamera-apps` is only needed if you later switch to `--camera_backend libcamera`.
+
+## Raspberry Pi 4 Performance Benchmark
+
+Use the benchmark script to report the three metrics reviewers usually ask for: latency, memory footprint, and throughput.
+
+```bash
+cd ~/pi_camera_service
+source .venv/bin/activate
+python benchmark_onnx.py \
+  --onnx_model best_model_v3_1_goldilocks.onnx \
+  --warmup_runs 10 \
+  --measured_runs 100 \
+  --output_csv benchmark_runs.csv \
+  --summary_csv benchmark_summary.csv \
+  --summary_md benchmark_summary.md
+```
+
+Outputs:
+
+- `benchmark_runs.csv`: one row per measured inference run.
+- `benchmark_summary.csv`: aggregate metrics for the run.
+- `benchmark_summary.md`: paper-ready table with the headline numbers.
+
+If you want to force a specific image, add `--image_path path/to/image.png`.
+
+The most useful values to report are:
+
+- Average latency per image in milliseconds.
+- RSS-based memory footprint before and after session creation, plus after warmup.
+- Throughput in frames per second, computed from the measured runs.
+
+## Batch Inference Over Captures
+
+To run inference across every image already captured on the Pi:
+
+```bash
+cd ~/pi_camera_service
+source .venv/bin/activate
+python batch_inference_captures.py \
+  --onnx_model best_model_v3_1_goldilocks.onnx \
+  --captures_dir captures \
+  --output_csv batch_inference_results.csv \
+  --summary_csv batch_inference_summary.csv \
+  --summary_md batch_inference_summary.md
+```
+
+Outputs:
+
+- `batch_inference_results.csv`: one row per image, including latency and any error string.
+- `batch_inference_summary.csv`: overall counts and latency summary.
+- `batch_inference_summary.md`: compact table for reporting.
+
+If you want to keep the run comparable to the benchmark table, use the same model file and `--image_size` value in both scripts.
 
 ## Run
 
