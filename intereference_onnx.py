@@ -55,7 +55,7 @@ def build_payload(
     robot_id: str,
     model_version: str,
     severity_score: float,
-    critical_threshold: float = 0.80,
+    critical_threshold: float = 0.65,
     image_path: Optional[str] = None,
 ) -> Dict[str, object]:
     status = "CRITICAL" if severity_score > critical_threshold else "OK"
@@ -85,7 +85,7 @@ def main() -> None:
     parser.add_argument("--pad_id", type=str, default="simulated_pad_01")
     parser.add_argument("--robot_id", type=str, default="robot_01")
     parser.add_argument("--model_version", type=str, default="onnx_v1")
-    parser.add_argument("--critical_threshold", type=float, default=0.80)
+    parser.add_argument("--critical_threshold", type=float, default=0.65)
     parser.add_argument("--image_size", type=int, default=224)
 
     parser.add_argument("--mqtt_enable", action="store_true")

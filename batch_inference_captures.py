@@ -80,7 +80,7 @@ def main() -> None:
     parser.add_argument("--onnx_model", type=Path, default=Path(DEFAULT_MODEL_NAME))
     parser.add_argument("--captures_dir", type=Path, default=Path("captures"))
     parser.add_argument("--image_size", type=int, default=224)
-    parser.add_argument("--critical_threshold", type=float, default=0.80)
+    parser.add_argument("--critical_threshold", type=float, default=0.65)
     parser.add_argument("--output_csv", type=Path, default=Path("batch_inference_results.csv"))
     parser.add_argument("--summary_csv", type=Path, default=Path("batch_inference_summary.csv"))
     parser.add_argument("--summary_md", type=Path, default=Path("batch_inference_summary.md"))

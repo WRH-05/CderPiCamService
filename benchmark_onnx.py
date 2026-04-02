@@ -123,7 +123,7 @@ def main() -> None:
     parser.add_argument("--image_size", type=int, default=224)
     parser.add_argument("--warmup_runs", type=int, default=10)
     parser.add_argument("--measured_runs", type=int, default=100)
-    parser.add_argument("--critical_threshold", type=float, default=0.80)
+    parser.add_argument("--critical_threshold", type=float, default=0.65)
     parser.add_argument("--output_csv", type=Path, default=Path("benchmark_runs.csv"))
     parser.add_argument("--summary_csv", type=Path, default=Path("benchmark_summary.csv"))
     parser.add_argument("--summary_md", type=Path, default=Path("benchmark_summary.md"))
