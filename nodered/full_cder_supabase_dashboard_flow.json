@@ -1,17 +1,16 @@
 [
     {
-        "id": "4163dde65631095e",
+        "id": "14a6af89eabdc1b0",
         "type": "tab",
         "label": "complete_inferenceonnx",
         "disabled": false,
         "info": "Realtime dashboard + Supabase persistence + alert routing"
     },
     {
-        "id": "378bab3985783422",
+        "id": "f9cc137510b7659d",
         "type": "mqtt in",
-        "z": "4163dde65631095e",
+        "z": "14a6af89eabdc1b0",
         "name": "EL MQTT input",
-        "func": "const panelOptions = [];\nfor (let i = 1; i <= 9; i++) {\n  panelOptions.push({ [`Panel ${i}`]: `panel_${i}` });\n}\nconst selectedPanel = flow.get('selected_panel_id') || 'panel_1';\nflow.set('selected_panel_id', selectedPanel);\nconst modeOptions = [\n  { 'Live MQTT': 'live' },\n  { 'DB Filter': 'db' }\n];\nconst selectedMode = flow.get('selected_mode') || 'live';\nflow.set('selected_mode', selectedMode);\nconst toPanelDropdown = {\n  options: panelOptions,\n  ui_update: { options: panelOptions },\n  payload: selectedPanel,\n  topic: 'panel_id'\n};\nconst toPadBuilder = { payload: selectedPanel, topic: 'panel_id' };\nconst toModeDropdown = {\n  options: modeOptions,\n  ui_update: { options: modeOptions },\n  payload: selectedMode,\n  topic: 'mode'\n};\nreturn [toPanelDropdown, toPadBuilder, toModeDropdown];",
         "topic": "pv/inspection/severity",
         "qos": "1",
         "datatype": "auto-detect",
@@ -20,37 +19,35 @@
         "rap": true,
         "rh": 0,
         "inputs": 0,
-        "x": 100,
-        "y": 240,
+        "x": 220,
+        "y": 460,
         "wires": [
             [
-                "fef330b176ed3c87"
+                "0be5960ad01e37a9"
             ]
         ]
     },
     {
-        "id": "fef330b176ed3c87",
+        "id": "0be5960ad01e37a9",
         "type": "json",
-        "z": "4163dde65631095e",
+        "z": "14a6af89eabdc1b0",
         "name": "Parse payload",
-        "func": "function normalizeSelection(payload, expectedPrefix, fallback) {\n  if (typeof payload === 'string') {\n    if (payload.startsWith(expectedPrefix)) return payload;\n    const m = payload.match(/(\\d+)/);\n    if (m) return `${expectedPrefix}${m[1].padStart(2, '0')}`;\n  }\n  if (payload && typeof payload === 'object') {\n    if (typeof payload.value === 'string') return payload.value;\n    const values = Object.values(payload);\n    if (values.length && typeof values[0] === 'string') return values[0];\n  }\n  return fallback;\n}\nconst selectedPanel = normalizeSelection(msg.payload, 'panel_', flow.get('selected_panel_id') || 'panel_1');\nflow.set('selected_panel_id', selectedPanel);\nconst options = [];\nfor (let i = 1; i <= 24; i++) {\n  const value = `pad_${String(i).padStart(2, '0')}`;\n  options.push({ [`Pad ${String(i).padStart(2, '0')}`]: value });\n}\nlet selectedPad = flow.get('selected_pad_id') || 'pad_01';\nif (!options.some(o => Object.values(o)[0] === selectedPad)) selectedPad = 'pad_01';\nflow.set('selected_pad_id', selectedPad);\nconst toPadDropdown = {\n  options,\n  ui_update: { options },\n  payload: selectedPad,\n  topic: 'pad_id'\n};\nconst toQuery = { payload: selectedPad, topic: 'pad_id' };\nreturn [toPadDropdown, toQuery];",
         "property": "payload",
         "action": "obj",
         "pretty": false,
-        "x": 260,
-        "y": 320,
+        "x": 380,
+        "y": 540,
         "wires": [
             [
-                "49cabaeeef71a3b2"
+                "cb442af731bc52fb"
             ]
         ]
     },
     {
-        "id": "d01c13c8e488dd89",
+        "id": "b4ad7adff2d1fe5c",
         "type": "ui_template",
-        "z": "4163dde65631095e",
-        "group": "bd6fb08e445bc717",
-        "func": "function normalizeSelection(payload, expectedPrefix, fallback) {\n  if (typeof payload === 'string') {\n    if (payload.startsWith(expectedPrefix)) return payload;\n    const m = payload.match(/(\\d+)/);\n    if (m) return `${expectedPrefix}${expectedPrefix === 'pad_' ? m[1].padStart(2, '0') : m[1]}`;\n  }\n  if (payload && typeof payload === 'object') {\n    if (typeof payload.value === 'string') return payload.value;\n    const values = Object.values(payload);\n    if (values.length && typeof values[0] === 'string') return values[0];\n  }\n  return fallback;\n}\nif (msg.topic === 'panel_id') {\n  flow.set('selected_panel_id', normalizeSelection(msg.payload, 'panel_', flow.get('selected_panel_id') || 'panel_1'));\n}\nif (msg.topic === 'pad_id') {\n  flow.set('selected_pad_id', normalizeSelection(msg.payload, 'pad_', flow.get('selected_pad_id') || 'pad_01'));\n}\nif (msg.topic === 'mode') {\n  const modeValue = normalizeSelection(msg.payload, '', flow.get('selected_mode') || 'live');\n  const normalizedMode = modeValue === 'db' ? 'db' : 'live';\n  flow.set('selected_mode', normalizedMode);\n  if (normalizedMode !== 'db') return null;\n}\nconst selectedMode = flow.get('selected_mode') || 'live';\nif (selectedMode !== 'db') return null;\nconst panelId = flow.get('selected_panel_id') || 'panel_1';\nconst padId = flow.get('selected_pad_id') || 'pad_01';\nconst supabaseUrl = env.get('SUPABASE_URL');\nconst serviceRoleKey = env.get('SUPABASE_SERVICE_ROLE_KEY');\nif (!supabaseUrl || !serviceRoleKey) {\n  node.warn('SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY not configured');\n  return null;\n}\nmsg.meta = { panel_id: panelId, pad_id: padId };\nmsg.url = `${supabaseUrl}/rest/v1/inspections?select=*&panel_id=eq.${encodeURIComponent(panelId)}&pad_id=eq.${encodeURIComponent(padId)}&order=captured_at.desc&limit=1`;\nmsg.method = 'GET';\nmsg.headers = { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` };\nreturn msg;",
+        "z": "14a6af89eabdc1b0",
+        "group": "383ee8460fc736dd",
         "name": "Dashboard banner + theme",
         "order": 1,
         "width": "24",
@@ -61,16 +58,16 @@
         "resendOnRefresh": true,
         "templateScope": "local",
         "className": "",
-        "x": 1360,
-        "y": 160,
+        "x": 1480,
+        "y": 380,
         "wires": [
             []
         ]
     },
     {
-        "id": "9d60b6df782cfab2",
+        "id": "65e24a04a1b077a7",
         "type": "change",
-        "z": "4163dde65631095e",
+        "z": "14a6af89eabdc1b0",
         "name": "Extract severity_score",
         "rules": [
             {
@@ -81,21 +78,21 @@
                 "tot": "msg"
             }
         ],
-        "x": 1500,
-        "y": 500,
+        "x": 1620,
+        "y": 720,
         "wires": [
             [
-                "fa073ccb6dd0440e",
-                "5df8944a170efec7"
+                "7ce40efed6c53410",
+                "09f5463386b2c9f9"
             ]
         ]
     },
     {
-        "id": "fa073ccb6dd0440e",
+        "id": "7ce40efed6c53410",
         "type": "ui_gauge",
-        "z": "4163dde65631095e",
+        "z": "14a6af89eabdc1b0",
         "name": "Severity Gauge",
-        "group": "bd6fb08e445bc717",
+        "group": "383ee8460fc736dd",
         "order": 6,
         "width": 5,
         "height": 6,
@@ -114,16 +111,16 @@
         "seg2": "0.65",
         "diff": false,
         "className": "",
-        "x": 1780,
-        "y": 520,
+        "x": 1900,
+        "y": 740,
         "wires": []
     },
     {
-        "id": "5df8944a170efec7",
+        "id": "09f5463386b2c9f9",
         "type": "ui_chart",
-        "z": "4163dde65631095e",
+        "z": "14a6af89eabdc1b0",
         "name": "Severity Trend",
-        "group": "bd6fb08e445bc717",
+        "group": "383ee8460fc736dd",
         "order": 7,
         "width": 13,
         "height": 6,
@@ -156,17 +153,17 @@
         "outputs": 1,
         "useDifferentColor": false,
         "className": "",
-        "x": 1780,
-        "y": 460,
+        "x": 1900,
+        "y": 680,
         "wires": [
             []
         ]
     },
     {
-        "id": "9033fcbccc48f59a",
+        "id": "878b47c1c4d81f52",
         "type": "ui_template",
-        "z": "4163dde65631095e",
-        "group": "bd6fb08e445bc717",
+        "z": "14a6af89eabdc1b0",
+        "group": "383ee8460fc736dd",
         "name": "Inspection summary cards",
         "order": 5,
         "width": "24",
@@ -177,16 +174,16 @@
         "resendOnRefresh": true,
         "templateScope": "local",
         "className": "",
-        "x": 1490,
-        "y": 220,
+        "x": 1610,
+        "y": 440,
         "wires": [
             []
         ]
     },
     {
-        "id": "2d57054aa53c1f00",
+        "id": "72939bd8be0b44b7",
         "type": "function",
-        "z": "4163dde65631095e",
+        "z": "14a6af89eabdc1b0",
         "name": "Validate + prepare Supabase insert",
         "func": "const p = msg.payload || {};\n\nconst score = Number(p.severity_score);\nif (!Number.isFinite(score)) {\n    node.warn('Dropped message: severity_score is missing/invalid');\n    return null;\n}\nif (!p.pad_id) {\n    node.warn('Dropped message: pad_id is required');\n    return null;\n}\n\nconst inspection = {\n    captured_at: new Date().toISOString(),\n    robot_id: p.robot_id || 'robot_01',\n    panel_id: p.panel_id || 'panel_A',\n    pad_id: p.pad_id,\n    severity_score: score,\n    status: p.status || (score >= 0.70 ? 'CRITICAL' : 'OK'),\n    image_path: p.image_path || null,\n    model_version: p.model_version || 'onnx_v1',\n    raw_payload: p\n};\n\nconst supabaseUrl = env.get('SUPABASE_URL');\nconst serviceRoleKey = env.get('SUPABASE_SERVICE_ROLE_KEY');\nif (!supabaseUrl || !serviceRoleKey) {\n    node.error('SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY not configured', msg);\n    return null;\n}\n\nmsg.meta = { panel_id: inspection.panel_id, pad_id: inspection.pad_id };\nmsg.url = supabaseUrl + '/rest/v1/inspections';\nmsg.method = 'POST';\nmsg.headers = {\n    apikey: serviceRoleKey,\n    Authorization: 'Bearer ' + serviceRoleKey,\n    'Content-Type': 'application/json',\n    Prefer: 'return=representation'\n};\nmsg.payload = [inspection];\nreturn msg;",
         "outputs": 1,
@@ -195,18 +192,18 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 840,
-        "y": 420,
+        "x": 960,
+        "y": 640,
         "wires": [
             [
-                "abad6f7232f5fa52"
+                "4a8d64c3d0aa8b7c"
             ]
         ]
     },
     {
-        "id": "abad6f7232f5fa52",
+        "id": "4a8d64c3d0aa8b7c",
         "type": "http request",
-        "z": "4163dde65631095e",
+        "z": "14a6af89eabdc1b0",
         "name": "Supabase insert inspection",
         "method": "use",
         "ret": "obj",
@@ -219,18 +216,18 @@
         "authType": "",
         "senderr": true,
         "headers": [],
-        "x": 1220,
-        "y": 380,
+        "x": 1340,
+        "y": 600,
         "wires": [
             [
-                "9b229abd7d61aad7"
+                "fb45c5a6a1a6fbcf"
             ]
         ]
     },
     {
-        "id": "9b229abd7d61aad7",
+        "id": "fb45c5a6a1a6fbcf",
         "type": "function",
-        "z": "4163dde65631095e",
+        "z": "14a6af89eabdc1b0",
         "name": "Prepare evaluate_pad_alert RPC",
         "func": "const supabaseUrl = env.get('SUPABASE_URL');\nconst serviceRoleKey = env.get('SUPABASE_SERVICE_ROLE_KEY');\n\nmsg.url = supabaseUrl + '/rest/v1/rpc/evaluate_pad_alert';\nmsg.method = 'POST';\nmsg.headers = {\n    apikey: serviceRoleKey,\n    Authorization: 'Bearer ' + serviceRoleKey,\n    'Content-Type': 'application/json'\n};\nmsg.payload = {\n    p_panel_id: msg.meta.panel_id,\n    p_pad_id: msg.meta.pad_id\n};\nreturn msg;",
         "outputs": 1,
@@ -239,18 +236,18 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 1520,
-        "y": 380,
+        "x": 1640,
+        "y": 600,
         "wires": [
             [
-                "85c8d02d754ecb11"
+                "232ef109776aae17"
             ]
         ]
     },
     {
-        "id": "85c8d02d754ecb11",
+        "id": "232ef109776aae17",
         "type": "http request",
-        "z": "4163dde65631095e",
+        "z": "14a6af89eabdc1b0",
         "name": "Supabase evaluate alert",
         "method": "use",
         "ret": "obj",
@@ -263,18 +260,18 @@
         "authType": "",
         "senderr": true,
         "headers": [],
-        "x": 1790,
-        "y": 380,
+        "x": 1910,
+        "y": 600,
         "wires": [
             [
-                "7b2abba715eea19a"
+                "9f864b8139fe61cf"
             ]
         ]
     },
     {
-        "id": "7b2abba715eea19a",
+        "id": "9f864b8139fe61cf",
         "type": "function",
-        "z": "4163dde65631095e",
+        "z": "14a6af89eabdc1b0",
         "name": "Parse alert result",
         "func": "const r = Array.isArray(msg.payload) ? msg.payload[0] : msg.payload;\nif (!r || !r.state) {\n    node.warn('evaluate_pad_alert returned empty result');\n    return null;\n}\nmsg.alert = r;\nmsg.payload = r.state + ' - ' + r.reason + ' (score=' + r.current_score + ')';\nreturn msg;",
         "outputs": 1,
@@ -283,21 +280,21 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 2030,
-        "y": 380,
+        "x": 2150,
+        "y": 600,
         "wires": [
             [
-                "ae9f0441902c27a6",
-                "80d41922e7182c5d",
-                "0d6c33d1873972b1"
+                "99bb872561940818",
+                "cc32f43dcf568283",
+                "422dce8a46f3478f"
             ]
         ]
     },
     {
-        "id": "ae9f0441902c27a6",
+        "id": "99bb872561940818",
         "type": "ui_template",
-        "z": "4163dde65631095e",
-        "group": "bd6fb08e445bc717",
+        "z": "14a6af89eabdc1b0",
+        "group": "383ee8460fc736dd",
         "name": "DB Alert",
         "order": 8,
         "width": 6,
@@ -308,16 +305,16 @@
         "resendOnRefresh": true,
         "templateScope": "local",
         "className": "",
-        "x": 2260,
-        "y": 340,
+        "x": 1890,
+        "y": 320,
         "wires": [
             []
         ]
     },
     {
-        "id": "80d41922e7182c5d",
+        "id": "cc32f43dcf568283",
         "type": "switch",
-        "z": "4163dde65631095e",
+        "z": "14a6af89eabdc1b0",
         "name": "OPEN?",
         "property": "alert.state",
         "propertyType": "msg",
@@ -334,21 +331,21 @@
         "checkall": "true",
         "repair": false,
         "outputs": 2,
-        "x": 2230,
-        "y": 400,
+        "x": 1860,
+        "y": 380,
         "wires": [
             [
-                "4947b9151d08d08b"
+                "f9efa8676cedd1f1"
             ],
             [
-                "25f56bc7be29979b"
+                "d480271f7f665f88"
             ]
         ]
     },
     {
-        "id": "4947b9151d08d08b",
+        "id": "f9efa8676cedd1f1",
         "type": "debug",
-        "z": "4163dde65631095e",
+        "z": "14a6af89eabdc1b0",
         "name": "OPEN alert",
         "active": true,
         "tosidebar": true,
@@ -358,14 +355,14 @@
         "targetType": "msg",
         "statusVal": "",
         "statusType": "auto",
-        "x": 2420,
-        "y": 380,
+        "x": 2050,
+        "y": 360,
         "wires": []
     },
     {
-        "id": "25f56bc7be29979b",
+        "id": "d480271f7f665f88",
         "type": "debug",
-        "z": "4163dde65631095e",
+        "z": "14a6af89eabdc1b0",
         "name": "Non-OPEN alert",
         "active": false,
         "tosidebar": true,
@@ -375,14 +372,14 @@
         "targetType": "msg",
         "statusVal": "",
         "statusType": "auto",
-        "x": 2430,
-        "y": 420,
+        "x": 2060,
+        "y": 400,
         "wires": []
     },
     {
-        "id": "0d6c33d1873972b1",
+        "id": "422dce8a46f3478f",
         "type": "debug",
-        "z": "4163dde65631095e",
+        "z": "14a6af89eabdc1b0",
         "name": "Alert eval raw",
         "active": false,
         "tosidebar": true,
@@ -392,14 +389,14 @@
         "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
-        "x": 2240,
-        "y": 460,
+        "x": 1870,
+        "y": 440,
         "wires": []
     },
     {
-        "id": "9de0abdf38ee60b5",
+        "id": "e53656cc2643d252",
         "type": "inject",
-        "z": "4163dde65631095e",
+        "z": "14a6af89eabdc1b0",
         "name": "Poll open alerts (30s)",
         "props": [
             {
@@ -413,18 +410,18 @@
         "topic": "",
         "payload": "",
         "payloadType": "date",
-        "x": 180,
-        "y": 640,
+        "x": 300,
+        "y": 860,
         "wires": [
             [
-                "6c3530e6bf763dd9"
+                "81565227f56f3e6c"
             ]
         ]
     },
     {
-        "id": "6c3530e6bf763dd9",
+        "id": "81565227f56f3e6c",
         "type": "function",
-        "z": "4163dde65631095e",
+        "z": "14a6af89eabdc1b0",
         "name": "Prepare open alert count query",
         "func": "const supabaseUrl = env.get('SUPABASE_URL');\nconst serviceRoleKey = env.get('SUPABASE_SERVICE_ROLE_KEY');\nif (!supabaseUrl || !serviceRoleKey) {\n    return null;\n}\nmsg.url = supabaseUrl + '/rest/v1/vw_open_alerts?select=id';\nmsg.method = 'GET';\nmsg.headers = {\n    apikey: serviceRoleKey,\n    Authorization: 'Bearer ' + serviceRoleKey\n};\nreturn msg;",
         "outputs": 1,
@@ -433,18 +430,18 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 430,
-        "y": 640,
+        "x": 550,
+        "y": 860,
         "wires": [
             [
-                "1c45e7a3d11c46cd"
+                "c6cd678b592dd294"
             ]
         ]
     },
     {
-        "id": "1c45e7a3d11c46cd",
+        "id": "c6cd678b592dd294",
         "type": "http request",
-        "z": "4163dde65631095e",
+        "z": "14a6af89eabdc1b0",
         "name": "Supabase get open alerts",
         "method": "use",
         "ret": "obj",
@@ -457,18 +454,18 @@
         "authType": "",
         "senderr": true,
         "headers": [],
-        "x": 690,
-        "y": 640,
+        "x": 810,
+        "y": 860,
         "wires": [
             [
-                "d48de1eba48e73d5"
+                "6dcee0c5bff4e843"
             ]
         ]
     },
     {
-        "id": "d48de1eba48e73d5",
+        "id": "6dcee0c5bff4e843",
         "type": "function",
-        "z": "4163dde65631095e",
+        "z": "14a6af89eabdc1b0",
         "name": "Format open alert count",
         "func": "let count = 0;\nif (Array.isArray(msg.payload)) {\n    count = msg.payload.length;\n} else if (msg.payload && Array.isArray(msg.payload.value)) {\n    count = msg.payload.value.length;\n}\nmsg.payload = String(count);\nreturn msg;",
         "outputs": 1,
@@ -477,19 +474,19 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 930,
-        "y": 640,
+        "x": 1050,
+        "y": 860,
         "wires": [
             [
-                "5d9d159b71f6a22c"
+                "28fcda12e1b1aad8"
             ]
         ]
     },
     {
-        "id": "5d9d159b71f6a22c",
+        "id": "28fcda12e1b1aad8",
         "type": "ui_template",
-        "z": "4163dde65631095e",
-        "group": "bd6fb08e445bc717",
+        "z": "14a6af89eabdc1b0",
+        "group": "383ee8460fc736dd",
         "name": "",
         "order": 9,
         "width": 6,
@@ -500,38 +497,38 @@
         "resendOnRefresh": true,
         "templateScope": "local",
         "className": "",
-        "x": 1120,
-        "y": 640,
+        "x": 1240,
+        "y": 860,
         "wires": [
             []
         ]
     },
     {
-        "id": "bd980b6fa41ecb83",
+        "id": "61f034ebff05ed4a",
         "type": "catch",
-        "z": "4163dde65631095e",
+        "z": "14a6af89eabdc1b0",
         "name": "Catch flow errors",
         "scope": [
-            "2d57054aa53c1f00",
-            "abad6f7232f5fa52",
-            "9b229abd7d61aad7",
-            "85c8d02d754ecb11",
-            "7b2abba715eea19a",
-            "1c45e7a3d11c46cd"
+            "72939bd8be0b44b7",
+            "4a8d64c3d0aa8b7c",
+            "fb45c5a6a1a6fbcf",
+            "232ef109776aae17",
+            "9f864b8139fe61cf",
+            "c6cd678b592dd294"
         ],
         "uncaught": false,
-        "x": 170,
-        "y": 700,
+        "x": 290,
+        "y": 920,
         "wires": [
             [
-                "67890dee1759dad9"
+                "63754aeaef10b161"
             ]
         ]
     },
     {
-        "id": "67890dee1759dad9",
+        "id": "63754aeaef10b161",
         "type": "debug",
-        "z": "4163dde65631095e",
+        "z": "14a6af89eabdc1b0",
         "name": "Flow errors",
         "active": true,
         "tosidebar": true,
@@ -541,14 +538,14 @@
         "targetType": "full",
         "statusVal": "error.message",
         "statusType": "msg",
-        "x": 390,
-        "y": 700,
+        "x": 510,
+        "y": 920,
         "wires": []
     },
     {
-        "id": "bdf825f0fed97f53",
+        "id": "0b5d2c73b98f9ad1",
         "type": "inject",
-        "z": "4163dde65631095e",
+        "z": "14a6af89eabdc1b0",
         "name": "Init panel/pad selectors",
         "props": [
             {
@@ -562,18 +559,18 @@
         "topic": "",
         "payload": "",
         "payloadType": "date",
-        "x": 170,
-        "y": 40,
+        "x": 290,
+        "y": 260,
         "wires": [
             [
-                "87549e05883b4896"
+                "253e5c5a8cedb67f"
             ]
         ]
     },
     {
-        "id": "87549e05883b4896",
+        "id": "253e5c5a8cedb67f",
         "type": "function",
-        "z": "4163dde65631095e",
+        "z": "14a6af89eabdc1b0",
         "name": "Build panel options (9)",
         "func": "const panelOptions = [];\nfor (let i = 1; i <= 9; i++) {\n  panelOptions.push({ [`Panel ${i}`]: `panel_${i}` });\n}\nconst selectedPanel = flow.get('selected_panel_id') || 'panel_1';\nflow.set('selected_panel_id', selectedPanel);\nconst modeOptions = [\n  { 'Live MQTT': 'live' },\n  { 'DB Filter': 'db' }\n];\nconst selectedMode = flow.get('selected_mode') || 'live';\nflow.set('selected_mode', selectedMode);\nconst toPanelDropdown = { options: panelOptions, payload: selectedPanel, topic: 'panel_id' };\nconst toPadBuilder = { payload: selectedPanel, topic: 'panel_id' };\nconst toModeDropdown = { options: modeOptions, payload: selectedMode, topic: 'mode' };\nreturn [toPanelDropdown, toPadBuilder, toModeDropdown];",
         "outputs": 3,
@@ -581,29 +578,29 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 420,
-        "y": 40,
+        "x": 540,
+        "y": 260,
         "wires": [
             [
-                "c406061ff1874a0d"
+                "a95b93bd4c9a96d9"
             ],
             [
-                "463c6eb804981111"
+                "8385377291871808"
             ],
             [
-                "39453b4603d5a4bc"
+                "6ed2e05e5e335bce"
             ]
         ]
     },
     {
-        "id": "c406061ff1874a0d",
+        "id": "a95b93bd4c9a96d9",
         "type": "ui_dropdown",
-        "z": "4163dde65631095e",
+        "z": "14a6af89eabdc1b0",
         "name": "Panel Selector",
         "label": "Panel",
         "tooltip": "Filter by panel",
         "place": "Select panel",
-        "group": "bd6fb08e445bc717",
+        "group": "383ee8460fc736dd",
         "order": 2,
         "width": 8,
         "height": 1,
@@ -614,18 +611,18 @@
         "topic": "panel_id",
         "topicType": "str",
         "className": "",
-        "x": 700,
-        "y": 40,
+        "x": 820,
+        "y": 260,
         "wires": [
             [
-                "463c6eb804981111"
+                "8385377291871808"
             ]
         ]
     },
     {
-        "id": "463c6eb804981111",
+        "id": "8385377291871808",
         "type": "function",
-        "z": "4163dde65631095e",
+        "z": "14a6af89eabdc1b0",
         "name": "Build pad options (24)",
         "func": "const selectedPanel = msg.payload || flow.get('selected_panel_id') || 'panel_1';\nflow.set('selected_panel_id', selectedPanel);\nconst options = [];\nfor (let i = 1; i <= 24; i++) {\n  const value = `pad_${String(i).padStart(2, '0')}`;\n  options.push({ [`Pad ${String(i).padStart(2, '0')}`]: value });\n}\nlet selectedPad = flow.get('selected_pad_id') || 'pad_01';\nif (!options.some(o => Object.values(o)[0] === selectedPad)) selectedPad = 'pad_01';\nflow.set('selected_pad_id', selectedPad);\nconst toPadDropdown = { options, payload: selectedPad, topic: 'pad_id' };\nconst toQuery = { payload: selectedPad, topic: 'pad_id' };\nreturn [toPadDropdown, toQuery];",
         "outputs": 2,
@@ -633,26 +630,26 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 940,
-        "y": 40,
+        "x": 1060,
+        "y": 260,
         "wires": [
             [
-                "219e1bbd965d531c"
+                "4ae940bec4e29b56"
             ],
             [
-                "c91a8c930269aaa3"
+                "d1985987beca0b6b"
             ]
         ]
     },
     {
-        "id": "219e1bbd965d531c",
+        "id": "4ae940bec4e29b56",
         "type": "ui_dropdown",
-        "z": "4163dde65631095e",
+        "z": "14a6af89eabdc1b0",
         "name": "Pad Selector",
         "label": "Pad",
         "tooltip": "Filter by pad within panel",
         "place": "Select pad",
-        "group": "bd6fb08e445bc717",
+        "group": "383ee8460fc736dd",
         "order": 3,
         "width": 8,
         "height": 1,
@@ -663,18 +660,18 @@
         "topic": "pad_id",
         "topicType": "str",
         "className": "",
-        "x": 1210,
-        "y": 40,
+        "x": 1330,
+        "y": 260,
         "wires": [
             [
-                "c91a8c930269aaa3"
+                "d1985987beca0b6b"
             ]
         ]
     },
     {
-        "id": "1c65097cac5eb74a",
+        "id": "7880f6ead3ee1070",
         "type": "inject",
-        "z": "4163dde65631095e",
+        "z": "14a6af89eabdc1b0",
         "name": "Poll selected pad (15s)",
         "props": [
             {
@@ -688,18 +685,18 @@
         "topic": "",
         "payload": "",
         "payloadType": "date",
-        "x": 170,
-        "y": 560,
+        "x": 290,
+        "y": 780,
         "wires": [
             [
-                "c91a8c930269aaa3"
+                "d1985987beca0b6b"
             ]
         ]
     },
     {
-        "id": "c91a8c930269aaa3",
+        "id": "d1985987beca0b6b",
         "type": "function",
-        "z": "4163dde65631095e",
+        "z": "14a6af89eabdc1b0",
         "name": "Prepare selected pad query",
         "func": "if (msg.topic === 'panel_id') flow.set('selected_panel_id', msg.payload);\nif (msg.topic === 'pad_id') flow.set('selected_pad_id', msg.payload);\nif (msg.topic === 'mode') {\n  flow.set('selected_mode', msg.payload);\n  if (msg.payload !== 'db') return null;\n}\nconst selectedMode = flow.get('selected_mode') || 'live';\nif (selectedMode !== 'db') return null;\nconst panelId = flow.get('selected_panel_id') || 'panel_1';\nconst padId = flow.get('selected_pad_id') || 'pad_01';\nconst supabaseUrl = env.get('SUPABASE_URL');\nconst serviceRoleKey = env.get('SUPABASE_SERVICE_ROLE_KEY');\nif (!supabaseUrl || !serviceRoleKey) {\n  node.warn('SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY not configured');\n  return null;\n}\nmsg.meta = { panel_id: panelId, pad_id: padId };\nmsg.url = `${supabaseUrl}/rest/v1/inspections?select=*&panel_id=eq.${encodeURIComponent(panelId)}&pad_id=eq.${encodeURIComponent(padId)}&order=captured_at.desc&limit=1`;\nmsg.method = 'GET';\nmsg.headers = { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` };\nreturn msg;",
         "outputs": 1,
@@ -707,18 +704,18 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 460,
-        "y": 560,
+        "x": 580,
+        "y": 780,
         "wires": [
             [
-                "01db16b998b7825f"
+                "d6722391101e1ecc"
             ]
         ]
     },
     {
-        "id": "01db16b998b7825f",
+        "id": "d6722391101e1ecc",
         "type": "http request",
-        "z": "4163dde65631095e",
+        "z": "14a6af89eabdc1b0",
         "name": "Supabase selected inspection",
         "method": "use",
         "ret": "obj",
@@ -731,37 +728,37 @@
         "authType": "",
         "senderr": true,
         "headers": [],
-        "x": 730,
-        "y": 560,
+        "x": 850,
+        "y": 780,
         "wires": [
             [
-                "141fcb464f623838"
+                "25cecb407abb9130"
             ]
         ]
     },
     {
-        "id": "141fcb464f623838",
+        "id": "25cecb407abb9130",
         "type": "function",
-        "z": "4163dde65631095e",
+        "z": "14a6af89eabdc1b0",
         "name": "Map selected inspection to UI",
-        "func": "const row = Array.isArray(msg.payload) ? msg.payload[0] : msg.payload;\nif (!row) {\n  node.warn('No inspection rows for selected panel/pad');\n  return null;\n}\nmsg.payload = row;\nmsg.meta = { panel_id: row.panel_id, pad_id: row.pad_id };\nreturn msg;",
+        "func": "const row = Array.isArray(msg.payload) ? msg.payload[0] : msg.payload;\nconst selectedPanel = (msg.meta && msg.meta.panel_id) || flow.get('selected_panel_id') || 'panel_1';\nconst selectedPad = (msg.meta && msg.meta.pad_id) || flow.get('selected_pad_id') || 'pad_01';\nif (!row) {\n  msg.payload = {\n    panel_id: selectedPanel,\n    pad_id: selectedPad,\n    status: 'NO DATA',\n    severity_score: 0,\n    robot_id: '-',\n    model_version: '-',\n    image_path: null,\n    captured_at: null,\n    record_panel_id: null,\n    record_pad_id: null\n  };\n  msg.meta = { panel_id: selectedPanel, pad_id: selectedPad, no_data: true };\n  return msg;\n}\nmsg.payload = {\n  panel_id: selectedPanel,\n  pad_id: selectedPad,\n  status: row.status || '—',\n  severity_score: row.severity_score,\n  robot_id: row.robot_id || '—',\n  model_version: row.model_version || '—',\n  image_path: row.image_path || null,\n  captured_at: row.captured_at || null,\n  record_panel_id: row.panel_id || null,\n  record_pad_id: row.pad_id || null\n};\nmsg.meta = { panel_id: selectedPanel, pad_id: selectedPad, record_panel_id: row.panel_id || null, record_pad_id: row.pad_id || null };\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 1010,
-        "y": 560,
+        "x": 1130,
+        "y": 780,
         "wires": [
             [
-                "c0c6e3d0de8391a0"
+                "264891abb3bb3527"
             ]
         ]
     },
     {
-        "id": "4d1bdcf78a80ab9a",
+        "id": "88a1cb123d24924c",
         "type": "function",
-        "z": "4163dde65631095e",
+        "z": "14a6af89eabdc1b0",
         "name": "Prepare selected alert RPC",
         "func": "const supabaseUrl = env.get('SUPABASE_URL');\nconst serviceRoleKey = env.get('SUPABASE_SERVICE_ROLE_KEY');\nif (!supabaseUrl || !serviceRoleKey) return null;\nconst panelId = (msg.meta && msg.meta.panel_id) || flow.get('selected_panel_id') || 'panel_1';\nconst padId = (msg.meta && msg.meta.pad_id) || flow.get('selected_pad_id') || 'pad_01';\nmsg.url = `${supabaseUrl}/rest/v1/rpc/evaluate_pad_alert`;\nmsg.method = 'POST';\nmsg.headers = {\n  apikey: serviceRoleKey,\n  Authorization: `Bearer ${serviceRoleKey}`,\n  'Content-Type': 'application/json'\n};\nmsg.payload = { p_panel_id: panelId, p_pad_id: padId };\nreturn msg;",
         "outputs": 1,
@@ -769,18 +766,18 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 1500,
-        "y": 580,
+        "x": 1620,
+        "y": 800,
         "wires": [
             [
-                "2b30b89c3a224998"
+                "79c98e9c0199bde0"
             ]
         ]
     },
     {
-        "id": "2b30b89c3a224998",
+        "id": "79c98e9c0199bde0",
         "type": "http request",
-        "z": "4163dde65631095e",
+        "z": "14a6af89eabdc1b0",
         "name": "Supabase selected alert",
         "method": "use",
         "ret": "obj",
@@ -793,18 +790,18 @@
         "authType": "",
         "senderr": true,
         "headers": [],
-        "x": 1770,
-        "y": 580,
+        "x": 1890,
+        "y": 800,
         "wires": [
             [
-                "7b2abba715eea19a"
+                "9f864b8139fe61cf"
             ]
         ]
     },
     {
-        "id": "49cabaeeef71a3b2",
+        "id": "cb442af731bc52fb",
         "type": "function",
-        "z": "4163dde65631095e",
+        "z": "14a6af89eabdc1b0",
         "name": "Route MQTT by mode",
         "func": "const mode = flow.get('selected_mode') || 'live';\nconst ingestMsg = RED.util.cloneMessage(msg);\nif (mode === 'live') {\n  return [msg, ingestMsg];\n}\nreturn [null, ingestMsg];",
         "outputs": 2,
@@ -812,52 +809,56 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 480,
-        "y": 240,
+        "x": 600,
+        "y": 460,
         "wires": [
             [
-                "9d60b6df782cfab2",
-                "d01c13c8e488dd89",
-                "9033fcbccc48f59a"
+                "65e24a04a1b077a7",
+                "b4ad7adff2d1fe5c",
+                "878b47c1c4d81f52"
             ],
             [
-                "2d57054aa53c1f00"
+                "72939bd8be0b44b7"
             ]
         ]
     },
     {
-        "id": "39453b4603d5a4bc",
-        "type": "ui_dropdown",
-        "z": "4163dde65631095e",
+        "id": "6ed2e05e5e335bce",
+        "type": "ui_switch",
+        "z": "14a6af89eabdc1b0",
         "name": "Mode Selector",
         "label": "Mode",
-        "tooltip": "Switch between live MQTT and filtered DB display",
-        "place": "Select mode",
-        "group": "bd6fb08e445bc717",
+        "tooltip": "Live MQTT when off, DB Filter when on",
+        "group": "383ee8460fc736dd",
         "order": 4,
         "width": 8,
         "height": 1,
         "passthru": true,
-        "multiple": false,
-        "options": [],
-        "payload": "",
+        "decouple": false,
         "topic": "mode",
         "topicType": "str",
+        "style": "",
+        "onvalue": "db",
+        "onvalueType": "str",
+        "onicon": "",
+        "oncolor": "#8d1f2a",
+        "offvalue": "live",
+        "offvalueType": "str",
+        "officon": "",
+        "offcolor": "#24406b",
         "className": "",
-        "x": 760,
-        "y": 100,
+        "x": 880,
+        "y": 320,
         "wires": [
             [
-                "c91a8c930269aaa3",
-                "c0c6e3d0de8391a0",
-                "49cabaeeef71a3b2"
+                "d1985987beca0b6b"
             ]
         ]
     },
     {
-        "id": "c0c6e3d0de8391a0",
+        "id": "264891abb3bb3527",
         "type": "function",
-        "z": "4163dde65631095e",
+        "z": "14a6af89eabdc1b0",
         "name": "Route DB by mode",
         "func": "if (msg.topic === 'mode') {\n  flow.set('selected_mode', msg.payload);\n  return null;\n}\nconst mode = flow.get('selected_mode') || 'live';\nif (mode !== 'db') return null;\nreturn [msg, RED.util.cloneMessage(msg)];",
         "outputs": 2,
@@ -865,15 +866,15 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 1250,
-        "y": 520,
+        "x": 1370,
+        "y": 740,
         "wires": [
             [
-                "9033fcbccc48f59a",
-                "9d60b6df782cfab2"
+                "878b47c1c4d81f52",
+                "65e24a04a1b077a7"
             ],
             [
-                "4d1bdcf78a80ab9a"
+                "88a1cb123d24924c"
             ]
         ]
     },
@@ -906,11 +907,11 @@
         "sessionExpiry": ""
     },
     {
-        "id": "bd6fb08e445bc717",
+        "id": "383ee8460fc736dd",
         "type": "ui_group",
-        "z": "4163dde65631095e",
+        "z": "14a6af89eabdc1b0",
         "name": "Group",
-        "tab": "99913c155b0d7be5",
+        "tab": "caddf03d5a8c813b",
         "order": null,
         "disp": true,
         "width": "24",
@@ -918,9 +919,9 @@
         "className": ""
     },
     {
-        "id": "99913c155b0d7be5",
+        "id": "caddf03d5a8c813b",
         "type": "ui_tab",
-        "z": "4163dde65631095e",
+        "z": "14a6af89eabdc1b0",
         "name": "complete_inferenceonnx",
         "icon": "dashboard",
         "order": 1,
