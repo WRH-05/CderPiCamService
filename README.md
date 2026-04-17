@@ -191,6 +191,63 @@ The most useful values to report are:
 - RSS-based memory footprint before and after session creation, plus after warmup.
 - Throughput in frames per second, computed from the measured runs.
 
+## Sustained Edge Stress Benchmark (397 x 4)
+
+Use `benchmark_edge.py` for the manuscript-grade sustained deployment run over all held-out captures.
+
+This run reports:
+
+- Primary metric: ONNX-only latency jitter (timed around ONNX session execution only).
+- Secondary metric: end-to-end latency (decode + preprocess + ONNX).
+- Memory stability: RSS start, peak, and end across the full sustained run.
+
+Recommended command:
+
+```bash
+cd ~/pi_camera_service
+source .venv/bin/activate
+python benchmark_edge.py \
+  --onnx_model model/best_sahl_1.5x_final.onnx \
+  --captures_dir captures \
+  --loops 4 \
+  --warmup_runs 10 \
+  --expected_image_count 397 \
+  --output_csv benchmark_edge_runs.csv \
+  --summary_csv benchmark_edge_summary.csv \
+  --summary_md benchmark_edge_summary.md
+```
+
+Notes:
+
+- Keep `best_sahl_1.5x_final.onnx.data` in the same folder as `best_sahl_1.5x_final.onnx`.
+- The script fails fast if image count is not exactly `397` (unless `--allow_non_expected_count` is set).
+- Total measured inferences are `397 * 4 = 1588`.
+
+Artifacts:
+
+- `benchmark_edge_runs.csv`: one row per inference iteration.
+- `benchmark_edge_summary.csv`: machine-readable aggregate results.
+- `benchmark_edge_summary.md`: paper-ready summary table.
+
+### Minimize Background Noise on Pi (Ubuntu 22.04 Headless)
+
+To keep latency and jitter measurements clean, stop non-essential workloads before running the benchmark:
+
+```bash
+sudo systemctl stop pi_camera_listener.service
+sudo systemctl stop mosquitto
+sudo systemctl stop apt-daily.service apt-daily-upgrade.service
+sudo swapoff -a
+```
+
+Optional stability checks:
+
+```bash
+cat /sys/class/thermal/thermal_zone0/temp
+```
+
+For thermal stability, ensure the Pi is adequately cooled and avoid concurrent camera/MQTT traffic during benchmark collection.
+
 ## Batch Inference Over Captures
 
 To run inference across every image already captured on the Pi:
