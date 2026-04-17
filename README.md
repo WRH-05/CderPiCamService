@@ -248,6 +248,32 @@ cat /sys/class/thermal/thermal_zone0/temp
 
 For thermal stability, ensure the Pi is adequately cooled and avoid concurrent camera/MQTT traffic during benchmark collection.
 
+### One-command benchmark protocol (recommended)
+
+Use the protocol script to enforce consistent benchmark conditions and auto-restore the Pi afterward:
+
+```bash
+cd ~/CderPiCamService
+chmod +x run_benchmark_edge_pi.sh
+./run_benchmark_edge_pi.sh
+```
+
+What it does:
+
+- Stops non-essential services (`pi_camera_listener.service`, `mosquitto`, apt timers).
+- Disables swap during the run.
+- Sets CPU governors to `performance` for all cores that expose governor controls.
+- Runs `benchmark_edge.py` with `loops=4`, `warmup_runs=10`, and inferred expected image count.
+- Restores governors and services automatically when the run exits.
+
+Optional overrides:
+
+```bash
+LOOPS=5 WARMUP_RUNS=20 ./run_benchmark_edge_pi.sh
+EXPECTED_IMAGE_COUNT=397 ./run_benchmark_edge_pi.sh
+MODEL_PATH=~/CderPiCamService/model/best_sahl_1.5x_final.onnx ./run_benchmark_edge_pi.sh
+```
+
 ## Batch Inference Over Captures
 
 To run inference across every image already captured on the Pi:
